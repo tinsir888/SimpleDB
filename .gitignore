@@ -2,6 +2,7 @@
 .project
 bin/
 dist/
+output/
 log
 
 .idea
