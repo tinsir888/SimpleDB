@@ -12,6 +12,7 @@ public class TupleDesc implements Serializable {
     * 此处添加了一行代码
     * */
     private final TDItem[] tdItems;
+
     /**
      * A help class to facilitate organizing the information of each field
      * */
@@ -67,7 +68,7 @@ public class TupleDesc implements Serializable {
     public TupleDesc(Type[] typeAr, String[] fieldAr) {
         // some code goes here
         tdItems = new TDItem[typeAr.length];
-        for(int i = 0; i < typeAr.length; i++){
+        for(int i = 0; i < typeAr.length; i ++){
             tdItems[i] = new TDItem(typeAr[i],fieldAr[i]);
         }
     }
@@ -83,7 +84,7 @@ public class TupleDesc implements Serializable {
     public TupleDesc(Type[] typeAr) {
         // some code goes here
         tdItems = new TDItem[typeAr.length];
-        for(int i = 0; i < typeAr.length; i++){
+        for(int i = 0; i < typeAr.length; i ++){
             tdItems[i] = new TDItem(typeAr[i],"");
         }
     }
@@ -110,7 +111,7 @@ public class TupleDesc implements Serializable {
         // some code goes here
         //return null;
         if(i < 0 || i >= tdItems.length){
-            throw new NoSuchElementException("position " + i + " is not a valid index!");
+            throw new NoSuchElementException("position " + i + " is not a valid index");
         }
         return tdItems[i].fieldName;
     }
@@ -160,7 +161,7 @@ public class TupleDesc implements Serializable {
     public int getSize() {
         // some code goes here
         int size = 0;
-        for(int i = 0; i < tdItems.length; i ++){
+        for(int i = 0; i < tdItems.length; i ++) {
             size += tdItems[i].fieldType.getLen();
         }
         return size;
@@ -181,6 +182,10 @@ public class TupleDesc implements Serializable {
         //return null;
         Type[] typeAr = new Type[td1.numFields() + td2.numFields()];
         String[] filedAr = new String[td1.numFields() + td2.numFields()];
+        for(int i = 0; i < td1.numFields(); i ++){
+            typeAr[i] = td1.tdItems[i].fieldType;
+            filedAr[i] = td1.tdItems[i].fieldName;
+        }
         for(int i = 0; i < td2.numFields(); i ++){
             typeAr[i + td1.numFields()] = td2.tdItems[i].fieldType;
             filedAr[i + td1.numFields()] = td2.tdItems[i].fieldName;
@@ -235,7 +240,7 @@ public class TupleDesc implements Serializable {
         for(int i= 0; i < tdItems.length - 1; i++){
             str.append(tdItems[i].fieldName + "(" + tdItems[i].fieldType + "), ");
         }
-        str.append(tdItems[tdItems.length-1].fieldName + "(" + tdItems[tdItems.length-1].fieldType + ")");
+        str.append(tdItems[tdItems.length - 1].fieldName + "(" + tdItems[tdItems.length - 1].fieldType + ")");
         return str.toString();
     }
 }
