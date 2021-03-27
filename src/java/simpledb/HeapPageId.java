@@ -57,10 +57,12 @@ public class HeapPageId implements PageId {
      */
     public boolean equals(Object o) {
         // some code goes here
-
-        PageId pgid = (PageId) o;
-        if(pgid.getTableId() == tableId && pgid.getPageNumber() == pgNo){
-            return true;
+        if(this.getClass().isInstance(o)){
+            PageId pgid = (PageId) o;
+            if(pgid.getTableId() == tableId && pgid.getPageNumber() == pgNo){
+                return true;
+            }
+            else return false;
         }
         else return false;
     }

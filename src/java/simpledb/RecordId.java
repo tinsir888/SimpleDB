@@ -53,10 +53,11 @@ public class RecordId implements Serializable {
     public boolean equals(Object o) {
         // some code goes here
         //throw new UnsupportedOperationException("implement this");
-
-        RecordId rc = (RecordId) o;
-        if(rc.getPageId().equals(pid) && rc.getTupleNumber() == tupleno){
-            return true;
+        if(this.getClass().isInstance(o)) {
+            RecordId rc = (RecordId) o;
+            if (rc.getPageId().equals(pid) && rc.getTupleNumber() == tupleno) {
+                return true;
+            } else return false;
         }
         else return false;
     }
