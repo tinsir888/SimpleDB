@@ -206,7 +206,7 @@ public class TupleDesc implements Serializable {
 
     public boolean equals(Object o) {
         // some code goes here
-        if(this.getClass().isInstance(o)){
+        if(this.getClass().isInstance(o)){//判断是否可以实例化
             TupleDesc tmp = (TupleDesc) o;
             if(numFields() == tmp.numFields()){
                 for(int i = 0; i < numFields(); i ++){
@@ -216,8 +216,9 @@ public class TupleDesc implements Serializable {
                 }
                 return true;
             }
+            else return false;
         }
-        return false;
+        else return false;
     }
 
     public int hashCode() {
