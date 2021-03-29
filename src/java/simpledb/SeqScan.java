@@ -106,7 +106,7 @@ public class SeqScan implements OpIterator {
     public boolean hasNext() throws TransactionAbortedException, DbException {
         // some code goes here
         if(it == null){ return false; }
-        else return true;
+        return it.hasNext();
     }
 
     public Tuple next() throws NoSuchElementException,

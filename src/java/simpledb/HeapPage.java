@@ -78,7 +78,7 @@ public class HeapPage implements Page {
     private int getHeaderSize() {        
         
         // some code goes here
-        return (int)Math.ceil(getNumTuples()/8);
+        return (int)Math.ceil(getNumTuples() * 1.0 / 8);
 
     }
     
@@ -296,10 +296,10 @@ public class HeapPage implements Page {
     public boolean isSlotUsed(int i) {
         // some code goes here
         //use bitmap
-        int q = i >> 3, r = i & 7;
-        int bitind = header[q], bit = (bitind >> r) & 1;
-        if(bit == 1) return true;
-        else return false;
+        int q = i >> 3;
+        int r = i & 7;
+        int bitind = header[q];
+        return (boolean) (((bitind >> r) & 1) == 1);
     }
 
     /**
