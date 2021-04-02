@@ -103,7 +103,7 @@ public class Predicate implements Serializable {
      */
     public boolean filter(Tuple t) {
         // some code goes here
-        return false;
+        return t.getField(this.field).compare(this.op, this.operand);
     }
 
     /**
@@ -112,6 +112,6 @@ public class Predicate implements Serializable {
      */
     public String toString() {
         // some code goes here
-        return "";
+        return "f = " + this.field + " op = " + this.op + " operand = operand_string" + this.operand;
     }
 }
