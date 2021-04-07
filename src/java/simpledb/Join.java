@@ -20,13 +20,19 @@ public class Join extends Operator {
      * @param child2
      *            Iterator for the right(inner) relation to join
      */
+    private final JoinPredicate p;
+    private final OpIterator child1;
+    private final OpIterator child2;
     public Join(JoinPredicate p, OpIterator child1, OpIterator child2) {
         // some code goes here
+        this.p = p;
+        this.child1 = child1;
+        this.child2 = child2;
     }
 
     public JoinPredicate getJoinPredicate() {
         // some code goes here
-        return null;
+        return this.p;
     }
 
     /**
@@ -36,7 +42,7 @@ public class Join extends Operator {
      * */
     public String getJoinField1Name() {
         // some code goes here
-        return null;
+        return this.child1.getTupleDesc().getFieldName(this.p.getField1());
     }
 
     /**
@@ -46,7 +52,7 @@ public class Join extends Operator {
      * */
     public String getJoinField2Name() {
         // some code goes here
-        return null;
+        return this.child2.getTupleDesc().getFieldName(this.p.getField2());
     }
 
     /**
@@ -55,20 +61,26 @@ public class Join extends Operator {
      */
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        return TupleDesc.merge(this.child1.getTupleDesc(), this.child2.getTupleDesc());
     }
 
     public void open() throws DbException, NoSuchElementException,
             TransactionAbortedException {
         // some code goes here
+        this.child1.open();
+        this.child2.open();
     }
 
     public void close() {
         // some code goes here
+        this.child1.close();
+        this.child2.close();
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
         // some code goes here
+        this.child1.rewind();
+        this.child2.rewind();
     }
 
     /**
@@ -106,3 +118,4 @@ public class Join extends Operator {
     }
 
 }
+//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
