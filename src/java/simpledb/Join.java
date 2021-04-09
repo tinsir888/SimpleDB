@@ -72,10 +72,12 @@ public class Join extends Operator {
         // some code goes here
         this.child1.open();
         this.child2.open();
+        super.open();
     }
 
     public void close() {
         // some code goes here
+        super.close();
         this.child1.close();
         this.child2.close();
     }
