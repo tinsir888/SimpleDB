@@ -21,13 +21,16 @@ public class Join extends Operator {
      *            Iterator for the right(inner) relation to join
      */
     private final JoinPredicate p;
-    private final OpIterator child1;
-    private final OpIterator child2;
+    private OpIterator child1;
+    private OpIterator child2;
+    private Tuple tp;
+
     public Join(JoinPredicate p, OpIterator child1, OpIterator child2) {
         // some code goes here
         this.p = p;
         this.child1 = child1;
         this.child2 = child2;
+        this.tp = null;
     }
 
     public JoinPredicate getJoinPredicate() {
@@ -103,18 +106,40 @@ public class Join extends Operator {
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
         // some code goes here
+        if(!this.child1.hasNext() && this.tp == null) return null;
+        while(this.child1.hasNext() || this.tp != null){
+            if(this.child1.hasNext() && this.tp == null){this.tp = this.child1.next();}
+            while(this.child2.hasNext()){
+                Tuple tmp = this.child2.next();
+                if(this.p.filter(this.tp, tmp)){
+                    TupleDesc temp = TupleDesc.merge(this.tp.getTupleDesc(), tmp.getTupleDesc());
+                    Tuple res = new Tuple(temp);
+                    for(int i = 0; i < this.tp.getTupleDesc().numFields(); i ++){
+                        res.setField(i, this.tp.getField(i));
+                    }
+                    for(int i = 0; i < tmp.getTupleDesc().numFields(); i ++){
+                        res.setField(this.tp.getTupleDesc().numFields() + i, tmp.getField(i));
+                    }
+                    return res;
+                }
+            }
+            this.child2.rewind();
+            this.tp = null;
+        }
         return null;
     }
 
     @Override
     public OpIterator[] getChildren() {
         // some code goes here
-        return null;
+        return new OpIterator[] {this.child1, this.child2};
     }
 
     @Override
     public void setChildren(OpIterator[] children) {
         // some code goes here
+        this.child1 = children[0];
+        this.child2 = children[1];
     }
 
 }
