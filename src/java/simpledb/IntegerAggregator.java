@@ -69,22 +69,28 @@ public class IntegerAggregator implements Aggregator {
         Field hash_gbfield;
         if(gbfield!=Aggregator.NO_GROUPING) hash_gbfield=tup.getField(gbfield);
         else hash_gbfield=NULL_HASH_KEY;
-
-        IntField field_to_aggregate=(IntField) tup.getField(afield);
-        int num_to_aggregate=field_to_aggregate.getValue();
-
+        int newNum;
+        if (tup.getField(afield).getType() == Type.INT_TYPE) {
+            IntField newField = (IntField) tup.getField(afield);
+            newNum = newField.getValue();
+        } else if(tup.getField(gbfield).getType() == Type.INT_TYPE){
+            IntField newField = (IntField) tup.getField(gbfield);
+            newNum = newField.getValue();
+        } else{
+            throw new UnsupportedOperationException("afield and gbfield is not INT_TYPE");
+        }
         if(gbfield==Aggregator.NO_GROUPING) fieldName[0]=null;
         else fieldName[0]=tup.getTupleDesc().getFieldName(gbfield);
         fieldName[1]=tup.getTupleDesc().getFieldName(afield);
 
-        if(tup.getField(afield).getType()!=Type.INT_TYPE)
+        if(tup.getField(afield).getType()!=Type.INT_TYPE && tup.getField(gbfield).getType()!=Type.INT_TYPE)
             throw new UnsupportedOperationException("not INT_TYPE");
 
         if(!res.containsKey(hash_gbfield)){
-            items newItem=new items(num_to_aggregate,0);
+            items newItem=new items(newNum,0);
             if(what==Op.AVG){
                 newItem.ave=1;
-                newItem.sum=num_to_aggregate;
+                newItem.sum=newNum;
             }
             else if(what==Op.COUNT){
                 newItem.val=1;
@@ -94,12 +100,12 @@ public class IntegerAggregator implements Aggregator {
         else{
             items newItem=res.get(hash_gbfield);
             if(what==Op.AVG){
-                newItem.sum=newItem.sum+num_to_aggregate;
+                newItem.sum=newItem.sum+newNum;
                 newItem.ave++;
                 newItem.val=newItem.sum/newItem.ave;
             }
             else{
-                newItem.val=update(newItem.val,num_to_aggregate,what);
+                newItem.val=update(newItem.val,newNum,what);
             }
             res.replace(hash_gbfield,newItem);
         }

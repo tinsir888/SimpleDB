@@ -43,13 +43,18 @@ public class StringAggregator implements Aggregator {
     public void mergeTupleIntoGroup(Tuple tup) {
         // some code goes here
         Field hash_gbfield = tup.getField(gbfield);
-        StringField newField = (StringField) tup.getField(afield);
-        String newStr = newField.getValue();
+        /*if (tup.getField(afield).getType() == Type.STRING_TYPE){
+            StringField newField = (StringField) tup.getField(afield);
+            String newStr = newField.getValue();
+        }*/
         if(gbfield == Aggregator.NO_GROUPING) fieldName[0] = null;
         else fieldName[0] = tup.getTupleDesc().getFieldName(gbfield);
         fieldName[1] = tup.getTupleDesc().getFieldName(afield);
         //exception:afield is not a string type
-        if(tup.getField(afield).getType() != Type.STRING_TYPE)
+        if(tup.getField(afield).getType() != Type.STRING_TYPE){
+            hash_gbfield = tup.getField(afield);
+        }
+        if(tup.getField(gbfield).getType() != Type.STRING_TYPE)
             throw new IllegalArgumentException("afield is not a string type");
         if(!res.containsKey(hash_gbfield)){
             if(what != Op.COUNT)

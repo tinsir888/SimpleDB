@@ -102,7 +102,7 @@ public class Aggregate extends Operator {
 
     public void open() throws NoSuchElementException, DbException,
 	    TransactionAbortedException {
-	// some code goes here
+	    // some code goes here
         child.open();
         super.open();
         while(child.hasNext())
@@ -141,7 +141,18 @@ public class Aggregate extends Operator {
      */
     public TupleDesc getTupleDesc() {
 	// some code goes here
-        return child.getTupleDesc();
+        Type[] typeArray;
+        String[] fieldName;
+        if(gfield == Aggregator.NO_GROUPING){
+            typeArray = new Type[]{Type.INT_TYPE};
+            fieldName = new String[]{child.getTupleDesc().getFieldName(afield)};
+        } else {
+            typeArray = new Type[]{child.getTupleDesc().getFieldType(gfield),Type.INT_TYPE};
+            fieldName = new String[]{child.getTupleDesc().getFieldName(gfield),
+                child.getTupleDesc().getFieldName(afield)};
+        }
+        TupleDesc res = new TupleDesc(typeArray, fieldName);
+        return res;
     }
 
     public void close() {
