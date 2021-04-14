@@ -43,27 +43,37 @@ public class StringAggregator implements Aggregator {
     public void mergeTupleIntoGroup(Tuple tup) {
         // some code goes here
         Field hash_gbfield = tup.getField(gbfield);
-        /*if (tup.getField(afield).getType() == Type.STRING_TYPE){
-            StringField newField = (StringField) tup.getField(afield);
-            String newStr = newField.getValue();
+        Field hash_afield = tup.getField(afield);
+        /*if(hash_afield.getType() != Type.STRING_TYPE){
+            Field teemp = hash_afield;
+            hash_afield = hash_gbfield;
+            hash_gbfield = teemp;
+            throw new IllegalArgumentException("afield is not string");
         }*/
         if(gbfield == Aggregator.NO_GROUPING) fieldName[0] = null;
         else fieldName[0] = tup.getTupleDesc().getFieldName(gbfield);
         fieldName[1] = tup.getTupleDesc().getFieldName(afield);
         //exception:afield is not a string type
-        if(tup.getField(afield).getType() != Type.STRING_TYPE){
+        /*if(tup.getField(afield).getType() != Type.STRING_TYPE){
             hash_gbfield = tup.getField(afield);
-        }
+        }*/
+        /*
         if(tup.getField(gbfield).getType() != Type.STRING_TYPE)
-            throw new IllegalArgumentException("afield is not a string type");
-        if(!res.containsKey(hash_gbfield)){
-            if(what != Op.COUNT)
-                throw new IllegalArgumentException("this.what is not Op.COUNT");
-            Integer newItem = 1;
-            res.put(hash_gbfield, newItem);
+            throw new IllegalArgumentException("not a STRING_TYPE");
+        */
+        if(!res.containsKey(hash_gbfield)) {
+            if (what != Op.COUNT && what != Op.SUM)
+                throw new IllegalArgumentException("Operator not supported!");
+            if (what == Op.COUNT){
+                Integer newItem = 1;
+                res.put(hash_gbfield, newItem);
+            } else {
+                Integer newItem = ((IntField)hash_afield).getValue()/**/;
+                res.put(hash_gbfield, newItem);
+            }
         } else{
             Integer newItem = res.get(hash_gbfield);
-            newItem += 1;
+            newItem += what == Op.COUNT ? 1 : ((IntField)hash_afield).getValue()/**/;
             res.put(hash_gbfield, newItem);
         }
     }
