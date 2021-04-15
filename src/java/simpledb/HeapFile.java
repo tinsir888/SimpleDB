@@ -1,5 +1,6 @@
 package simpledb;
 
+import javax.xml.crypto.Data;
 import java.io.*;
 import java.util.*;
 
@@ -117,15 +118,34 @@ public class HeapFile implements DbFile {
     public ArrayList<Page> insertTuple(TransactionId tid, Tuple t)
             throws DbException, IOException, TransactionAbortedException {
         // some code goes here
-        return null;
-        // not necessary for lab1
+        ArrayList<Page> res = new ArrayList<>();
+        for(int i = 0; i < numPages(); i ++){
+            HeapPage cur = (HeapPage)Database.getBufferPool().getPage(tid, new HeapPageId(getId(), i), Permissions.READ_WRITE);
+            if(cur.getNumEmptySlots() == 0)continue;
+            cur.insertTuple(t);
+            res.add(cur);
+            return res;
+        }
+        res.clear();
+        BufferedOutputStream tmp = new BufferedOutputStream(new FileOutputStream(this.file, true));
+        tmp.write(HeapPage.createEmptyPageData());
+        tmp.close();
+        HeapPage cur = (HeapPage) Database.getBufferPool().getPage(tid, new HeapPageId(getId(), numPages() - 1), Permissions.READ_WRITE);
+        cur.insertTuple(t);
+        res.add(cur);
+        return res;
+        // necessary for lab2
     }
 
     // see DbFile.java for javadocs
     public ArrayList<Page> deleteTuple(TransactionId tid, Tuple t) throws DbException, TransactionAbortedException {
         // some code goes here
-        return null;
-        // not necessary for lab1
+        ArrayList<Page> res = new ArrayList<>();
+        HeapPage cur = (HeapPage) Database.getBufferPool().getPage(tid, t.getRecordId().getPageId(), Permissions.READ_WRITE);
+        cur.deleteTuple(t);
+        res.add(cur);
+        return res;
+        // necessary for lab2
     }
 
     // see DbFile.java for javadocs
