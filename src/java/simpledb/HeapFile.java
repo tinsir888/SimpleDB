@@ -69,41 +69,33 @@ public class HeapFile implements DbFile {
     // see DbFile.java for javadocs
     public Page readPage(PageId pid) {
         // some code goes here
-        int tid = pid.getTableId();
-        int pgNo = pid.getPageNumber();
-
-        RandomAccessFile f = null;
-        try{
-            f = new RandomAccessFile(file, "r");
-            if((pgNo + 1) * BufferPool.getPageSize() > f.length()){
-                f.close();
-                throw new IllegalArgumentException(String.format("table %d page %d is invalid.", tid, pgNo));
-            }
-            byte[] bytes = new byte[BufferPool.getPageSize()];
-            f.seek(pgNo * BufferPool.getPageSize());
-
-            int read = f.read(bytes, 0, BufferPool.getPageSize());
-            if(read != BufferPool.getPageSize()){
-                throw new IllegalArgumentException(String.format("table %d page %d read %d bytes", tid, pgNo, read));
-            }
-            HeapPageId id = new HeapPageId(pid.getTableId(), pid.getPageNumber());
-            return new HeapPage(id, bytes);
-        }catch(IOException e){
-            e.printStackTrace();
-        }finally {
-            try {
-                f.close();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
+        Page res = null;
+        byte[] data = new byte[BufferPool.getPageSize()];
+        try(RandomAccessFile raf = new RandomAccessFile(getFile(), "r")){
+            int pos = pid.getPageNumber() * BufferPool.getPageSize();
+            raf.seek(pos);
+            raf.read(data, 0, data.length);
+            res = new HeapPage((HeapPageId)pid, data);
         }
-        throw new IllegalArgumentException(String.format("table %d page %d is invalid", tid, pgNo));
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        return  res;
     }
 
     // see DbFile.java for javadocs
     public void writePage(Page page) throws IOException {
         // some code goes here
-        // not necessary for lab1
+        //  necessary for lab2
+        int pgno = page.getId().getPageNumber();
+        if(pgno > numPages())
+            throw new IllegalArgumentException("invalid pgno");
+        int pgsize = BufferPool.getPageSize();
+        RandomAccessFile f = new RandomAccessFile(file, "rw");
+        f.seek(pgno * pgsize);
+        byte[] data = page.getPageData();
+        f.write(data);
+        f.close();
     }
 
     /**
