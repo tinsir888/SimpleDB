@@ -252,7 +252,7 @@ public class HeapPage implements Page {
         int tupno = t.getRecordId().getTupleNumber();
         if(!isSlotUsed(tupno))
             throw new DbException("the tuple slot is empty!");
-        if(tuples[tupno] == null || (!tuples[tupno].equals(t)))
+        if(tuples[tupno] == null)
             throw new DbException("the tuple is not in this page!");
         markSlotUsed(tupno, false);
         tuples[tupno] = null;
