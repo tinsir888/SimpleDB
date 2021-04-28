@@ -15,6 +15,7 @@ public class TupleDesc implements Serializable {
 
     /**
      * A help class to facilitate organizing the information of each field
+     * class TDItem ：用于组织每一列的辅助类，包含fieldType和fieldName两个属性。
      * */
     public static class TDItem implements Serializable {
 
@@ -64,6 +65,7 @@ public class TupleDesc implements Serializable {
      * @param fieldAr
      *            array specifying the names of the fields. Note that names may
      *            be null.
+     *          TupleDesc构造函数：创建一个TDItem数组，描述一个tuple包括哪些field。
      */
     public TupleDesc(Type[] typeAr, String[] fieldAr) {
         // some code goes here
@@ -94,7 +96,7 @@ public class TupleDesc implements Serializable {
      */
     public int numFields() {
         // some code goes here
-        //return 0;
+        //numFields()：返回TDItem数组的大小。
         return tdItems.length;
     }
 
@@ -109,7 +111,7 @@ public class TupleDesc implements Serializable {
      */
     public String getFieldName(int i) throws NoSuchElementException {
         // some code goes here
-        //return null;
+        // getFieldName(int i)：返回TDItem数组中下标i的fieldName。
         if(i < 0 || i >= tdItems.length){
             throw new NoSuchElementException("position " + i + " is not a valid index");
         }
@@ -128,7 +130,7 @@ public class TupleDesc implements Serializable {
      */
     public Type getFieldType(int i) throws NoSuchElementException {
         // some code goes here
-        //return null;
+        // getFieldType(int i)：返回TDItem数组中下标i的fieldType。
         if(i < 0 || i >= tdItems.length){
             throw new NoSuchElementException("position " + i + " is not a valid index!");
         }
@@ -146,6 +148,7 @@ public class TupleDesc implements Serializable {
      */
     public int fieldNameToIndex(String name) throws NoSuchElementException {
         // some code goes here
+        //fieldNameToIndex(String name)：遍历TDItem数组找到对应fieldName的下标
         for(int i = 0; i < tdItems.length; i ++){
             if(tdItems[i].fieldName.equals(name)){
                 return i;
@@ -160,6 +163,7 @@ public class TupleDesc implements Serializable {
      */
     public int getSize() {
         // some code goes here
+        // getSize()：遍历TDItem数组，求每一列fieldType大小总和。
         int size = 0;
         for(int i = 0; i < tdItems.length; i ++) {
             size += tdItems[i].fieldType.getLen();
@@ -179,7 +183,7 @@ public class TupleDesc implements Serializable {
      */
     public static TupleDesc merge(TupleDesc td1, TupleDesc td2) {
         // some code goes here
-        //return null;
+        // merge(TupleDesc td1, TupleDesc td2)：把两个TupleDesc合二为一。
         Type[] typeAr = new Type[td1.numFields() + td2.numFields()];
         String[] filedAr = new String[td1.numFields() + td2.numFields()];
         for(int i = 0; i < td1.numFields(); i ++){
@@ -206,6 +210,7 @@ public class TupleDesc implements Serializable {
 
     public boolean equals(Object o) {
         // some code goes here
+        // equals(Object o)：判断两个TupleDesc的列属性是否相同。
         if(this.getClass().isInstance(o)){//判断是否可以实例化
             TupleDesc tmp = (TupleDesc) o;
             if(numFields() == tmp.numFields()){

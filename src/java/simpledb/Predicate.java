@@ -14,7 +14,9 @@ public class Predicate implements Serializable {
         EQUALS, GREATER_THAN, LESS_THAN, LESS_THAN_OR_EQ, GREATER_THAN_OR_EQ, LIKE, NOT_EQUALS;
 
         /**
-         * Interface to access operations by integer value for command-line
+         *fetchNext()：利用OpIterator类型的迭代器child找到一组要删除的记录
+         * ，insert需要经过BufferPool，所以使用Database.getBufferPool().deleteTuple(this.tid, t)方法进行删除。
+         *  Interface to access operations by integer value for command-line
          * convenience.
          * 
          * @param i

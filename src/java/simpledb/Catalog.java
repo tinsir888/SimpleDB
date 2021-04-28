@@ -19,10 +19,21 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Catalog {
 
     /**
+     * 目录（SimpleDB中的Catalog类）由以下列表组成：
+     * 表和数据库中当前表的模式。 你会
+     * 需要支持添加新表以及获取信息的能力
+     * 关于一个特定的表。 与每个表相关联的是
+     * 一个允许操作员确定类型的TupleDesc对象
+     * 和表中的字段数。
+     * 全局目录是一个实例
+     * 为整个SimpleDB进程分配的目录集。
+     * 可以通过方法检索全局目录
+     * Database.getCatalog（），同样如此
+     * 全局缓冲池（使用Database.getBufferPool（））。
      * Constructor.
      * Creates a new, empty catalog.
      */
-    // some code goes here
+    // class Table：为Catalog存储的一个个表建立的辅助类，Table类的构造函数需要三个参数，第一个参数是DbFile类型，是table的内容；第二个参数是String类型，是table 的name；第三个参数是pkeyField，代表表中主键的fieldName。
     private static class Table{
         private static final long serialVersionUID = 1L;
 
@@ -41,7 +52,7 @@ public class Catalog {
     }
     private final ConcurrentHashMap<Integer, Table> hashTable;
     public Catalog() {
-        // some code goes here
+        // Catalog构造函数：创建一个<Interger,Table>的哈希表，用于存储已经实例化的表。
         hashTable = new ConcurrentHashMap<Integer, Table>();
     }
 
@@ -55,7 +66,7 @@ public class Catalog {
      * @param pkeyField the name of the primary key field
      */
     public void addTable(DbFile file, String name, String pkeyField) {
-        // some code goes here
+        // addTable(DbFile file, String name, String pkeyField)：在哈希表中添加一个Table。
         Table t = new Table(file, name, pkeyField);
         hashTable.put(file.getId(), t);
     }
@@ -80,7 +91,7 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public int getTableId(String name) throws NoSuchElementException {
-        // some code goes here
+        // getTableId(String name)：遍历哈希表中的Tables，找到对应名字返回table的Id。
         Integer id = hashTable.searchValues(1, value -> {
             if(value.tableName.equals(name)){return value.dbFile.getId();}
             else return null;
@@ -99,7 +110,7 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
-        // some code goes here
+        // getTupleDesc(int tableid)：返回tableid表对应的TupleDesc表结构。
         Table t = hashTable.getOrDefault(tableid, null);
         if(t != null){
             return t.dbFile.getTupleDesc();
@@ -115,7 +126,7 @@ public class Catalog {
      *     function passed to addTable
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
-        // some code goes here
+        // getDatabaseFile(int tableid)：返回tableid表对应的表数据DbFile。
         Table t = hashTable.getOrDefault(tableid, null);
         if(t != null){
             return t.dbFile;
@@ -125,7 +136,7 @@ public class Catalog {
     }
 
     public String getPrimaryKey(int tableid) {
-        // some code goes here
+        // getPrimaryKey(int tableid)：返回tableid表对应的主键名。
         Table t = hashTable.getOrDefault(tableid, null);
         if(t != null){
             return t.pk;
@@ -140,7 +151,7 @@ public class Catalog {
     }
 
     public String getTableName(int tableid) {
-        // some code goes here
+        // getTableName(int id)：返回tableid表对应的TableName。
         Table t = hashTable.getOrDefault(tableid, null);
         if(t != null){
             return t.tableName;
@@ -151,7 +162,7 @@ public class Catalog {
     
     /** Delete all tables from the catalog */
     public void clear() {
-        // some code goes here
+        // clear()：从Catalog中删除所有的tables。
         hashTable.clear();
     }
     
@@ -160,6 +171,7 @@ public class Catalog {
      * @param catalogFile
      */
     public void loadSchema(String catalogFile) {
+        //loadSchema(String catalogFile)：利用正则化从file中读取表的结构，并在数据库中创建所有合适的表。
         String line = "";
         String baseFolder=new File(new File(catalogFile).getAbsolutePath()).getParent();
         try {

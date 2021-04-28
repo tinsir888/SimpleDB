@@ -29,6 +29,8 @@ public class SeqScan implements OpIterator {
      *            tableAlias or fieldName are null. It shouldn't crash if they
      *            are, but the resulting name can be null.fieldName,
      *            tableAlias.null, or null.null).
+     *            SeqScan的构造函数：创建一次特定的transaction对特定table内的数据进行遍历，有三个参数，
+     *            第一个参数是transaction对应的tid；第二个参数是tableId；第三个参数是表的别名，用于解析。
      */
     private TransactionId tid;
     private int tableid;
@@ -47,6 +49,7 @@ public class SeqScan implements OpIterator {
      *       return the table name of the table the operator scans. This should
      *       be the actual name of the table in the catalog of the database
      * */
+    // getTableName()：返回对应tid。
     public String getTableName() {
         return Database.getCatalog().getTableName(tableid);
     }
@@ -56,7 +59,7 @@ public class SeqScan implements OpIterator {
      * */
     public String getAlias()
     {
-        // some code goes here
+        // getAlias()：返回对应别名。
         return tableAlias;
     }
 
@@ -83,7 +86,7 @@ public class SeqScan implements OpIterator {
     }
 
     public void open() throws DbException, TransactionAbortedException {
-        // some code goes here
+        // open()：使用DbFileIterator打开table。
         it = Database.getCatalog().getDatabaseFile(tableid).iterator(tid);
         it.open();
     }
@@ -99,7 +102,7 @@ public class SeqScan implements OpIterator {
      *         prefixed with the tableAlias string from the constructor.
      */
     public TupleDesc getTupleDesc() {
-        // some code goes here
+        // getTupleDesc()：返回table 的TupleDesc类型。
         return Database.getCatalog().getTupleDesc(tableid);
     }
 
@@ -123,7 +126,7 @@ public class SeqScan implements OpIterator {
     }
 
     public void close() {
-        // some code goes here
+        // close()：使用DbFileIterator关闭table。
         it = null;
     }
 

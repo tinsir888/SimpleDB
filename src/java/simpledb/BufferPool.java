@@ -7,6 +7,22 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * 缓冲池（SimpleDB中的类“ BufferPool”）负责
+ * 用于将最近从磁盘读取的页面缓存在内存中。 全部
+ * 操作员通过缓冲区从磁盘上的各种文件读取和写入页面
+ * 水池。 它由固定数量的页面组成，由
+ * BufferPool构造函数的numPages参数。
+ * 在以后的实验中，您将实现一个
+ * 驱逐政策。 在本实验中，您只需实现构造函数，然后
+ * SeqScan运算符使用的“ BufferPool.getPage（）”方法。
+ * BufferPool最多可存储`numPages`页。 为了这
+ * 实验室，如果针对不同的请求提出了超过“ numPages”个请求
+ * 页，然后可以实施一个驱逐策略，而不是实施驱逐策略
+ * DbException。 在以后的实验室中，您将需要搬迁
+ * 政策。
+ * “数据库”类提供了一个静态方法，
+ * Database.getBufferPool（），返回对单个对象的引用
+ * 整个SimpleDB流程的BufferPool实例。
  * BufferPool manages the reading and writing of pages into memory from
  * disk. Access methods call into it to retrieve pages, and it fetches
  * pages from the appropriate location.
@@ -36,11 +52,11 @@ public class BufferPool {
      * @param numPages maximum number of pages in this buffer pool.
      */
     public BufferPool(int numPages) {
-        // some code goes here
+        // BufferPool(int numPages)：BufferPool的构造函数，创建一个BufferPool实例缓存最大numPages数量的Pages，通过<PageId,Page>类型的pageStore哈希表管理缓存pages。
         this.numPages = numPages;
         pageStore = new ConcurrentHashMap<PageId, Page>();
     }
-    
+    // getPageSize()：获得每个Page大小，默认是4096。
     public static int getPageSize() {
       return pageSize;
     }
@@ -72,7 +88,9 @@ public class BufferPool {
      */
     public Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
-        // some code goes here
+        // getPage(TransactionId tid, PageId pid, Permissions perm)：根据pid获取Page，如果在pageStore中，返回对应Page;
+        // 如果不在就添加进哈希表，如果缓存的page数量超过缓存最大numPages数量，调用evictPage()淘汰一个页。
+        // 获得page时在tid代表的Transaction上加锁，perm代表锁的类型，保证使用返回Page时的安全性。
         if(!pageStore.containsKey(pid)){
             if(pageStore.size() > numPages){
                 evictPage();
@@ -145,7 +163,9 @@ public class BufferPool {
      */
     public void insertTuple(TransactionId tid, int tableId, Tuple t)
         throws DbException, IOException, TransactionAbortedException {
-        // some code goes here
+        // insertTuple(TransactionId tid, int tableId, Tuple t)：
+        // 在BufferPool中添加特定的tuple到tableId对应的表中，
+        // 调用DbFile的insertTuple(tid, t)方法（其中有一个读写锁），并将添加了tuple的page mark dirty。
         // necessary for lab2
         DbFile f = Database.getCatalog().getDatabaseFile(tableId);
         updateBufferPool(f.insertTuple(tid, t), tid);
@@ -176,7 +196,8 @@ public class BufferPool {
      */
     public  void deleteTuple(TransactionId tid, Tuple t)
         throws DbException, IOException, TransactionAbortedException {
-        // some code goes here
+        // deleteTuple(TransactionId tid, Tuple t)：从BufferPool中删除特定的tuple，
+        // 调用DbFile的deleteTuple(tid, t)方法（其中有一个读写锁），并将删除了tuple的page mark dirty。
         // necessary for lab2
         DbFile f = Database.getCatalog().getDatabaseFile(t.getRecordId().getPageId().getTableId());
         updateBufferPool(f.deleteTuple(tid, t), tid);
@@ -204,7 +225,7 @@ public class BufferPool {
         are removed from the cache so they can be reused safely
     */
     public synchronized void discardPage(PageId pid) {
-        // some code goes here
+        // discardPage(PageId pid)：从BufferPool的缓存中删除pid对应的page。
         // not necessary for lab1
         pageStore.remove(pid);
     }
@@ -214,7 +235,7 @@ public class BufferPool {
      * @param pid an ID indicating the page to flush
      */
     private synchronized  void flushPage(PageId pid) throws IOException {
-        // some code goes here
+        // flushPage(PageId pid)：将pid对应的Page从BuffePool的缓存中写入disk。
         // not necessary for lab1
         Page p = pageStore.get(pid);
         TransactionId tid = null;
@@ -238,7 +259,8 @@ public class BufferPool {
      * Flushes the page to disk to ensure dirty pages are updated on disk.
      */
     private synchronized  void evictPage() throws DbException {
-        // some code goes here
+        // evictPage()：当缓存的page数量超过缓存最大numPages数量，调用evictPage()淘汰一个页。
+        // 先维护一个<PageId,Integer>类型的哈希表pageAge，根据Page载入cache的时间排序，淘汰缓存中最老的Page
         // necessary for lab2
         PageId pid = new ArrayList<>(pageStore.keySet()).get(0);
         try{

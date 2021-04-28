@@ -37,6 +37,11 @@ public class Aggregate extends Operator {
     private Aggregator agg;
     private OpIterator it;
     private Type gbfieldType;
+    // Aggregate的构造函数：Aggregation operator用于计算一个Aggregate（e.g. sum,avg,max,min），
+    // 我们需要对一列数据支持聚合。构造函数有四个参数，第一个参数是OpIterator类型的 child，用于不断提供tuples；
+    // 第二个参数是 int 类型的 afield，标识着我们需要聚合的列；
+    // 第三个参数是 int 类型的gfield，标识着结果中我们需要group by 的列；
+    // 第四个参数是 Aggregator.Op类型的aop，是我们需要使用的Aggregation operator。
     public Aggregate(OpIterator child, int afield, int gfield, Aggregator.Op aop) {
     	// some code goes here
         this.child = child;
@@ -56,7 +61,7 @@ public class Aggregate extends Operator {
      *         {@link simpledb.Aggregator#NO_GROUPING}
      * */
     public int groupField() {
-	    // some code goes here
+	    // groupField()：如果这个Aggregate伴随有 groupby，返回groupby的field 的索引。
         return gfield;
     }
 
@@ -66,7 +71,7 @@ public class Aggregate extends Operator {
      *         null;
      * */
     public String groupFieldName() {
-	// some code goes here
+	// groupFieldName()：如果这个Aggregate伴随有 groupby，返回groupby的field 的Name。
         return gfield == Aggregator.NO_GROUPING ? null : it.getTupleDesc().getFieldName(0);
     }
 
@@ -119,7 +124,8 @@ public class Aggregate extends Operator {
      * aggregate. Should return null if there are no more tuples.
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
-	// some code goes here
+	    // fetchNext()：返回下一个tuple。如果有groupby field，那么第一个field是我们group的field，
+        // 第二个field是计算的aggregate结果；如果没有groupby field，只需要返回结果。
 	    return it.hasNext() ? it.next() : null;
     }
 
@@ -140,7 +146,7 @@ public class Aggregate extends Operator {
      * iterator.
      */
     public TupleDesc getTupleDesc() {
-	// some code goes here
+	// getTupleDesc()：返回这个aggregate计算结果tuple的TupleDesc。
         Type[] typeArray;
         String[] fieldName;
         if(gfield == Aggregator.NO_GROUPING){

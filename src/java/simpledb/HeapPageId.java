@@ -15,14 +15,14 @@ public class HeapPageId implements PageId {
     private final int pgNo;
 
     public HeapPageId(int tableId, int pgNo) {
-        // some code goes here
+        //HeapPageId的构造函数：对于特定table中的一页特定Page，设置一个page id 结构，参数为int类型的tableId和int类型的pgNo。
         this.tableId = tableId;
         this.pgNo = pgNo;
     }
 
     /** @return the table associated with this PageId */
     public int getTableId() {
-        // some code goes here
+        // getTableId()：返回PageId对应的tableId。
         return tableId;
     }
 
@@ -31,7 +31,7 @@ public class HeapPageId implements PageId {
      *   this PageId
      */
     public int getPageNumber() {
-        // some code goes here
+        // getPageNumber()：返回tableId对应的表包含的page数量。
         return pgNo;
     }
 
@@ -56,7 +56,7 @@ public class HeapPageId implements PageId {
      *   ids are the same)
      */
     public boolean equals(Object o) {
-        // some code goes here
+        // equals(Object o)：判断两个pageId对象是否相等。
         if(this.getClass().isInstance(o)){
             PageId pgid = (PageId) o;
             if(pgid.getTableId() == tableId && pgid.getPageNumber() == pgNo){

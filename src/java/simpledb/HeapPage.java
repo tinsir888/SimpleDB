@@ -41,6 +41,8 @@ public class HeapPage implements Page {
      * @see Catalog#getTupleDesc
      * @see BufferPool#getPageSize()
      */
+    //HeapPage的构造函数：有两个参数，第一个是HeapPageId，第二个是byte[] 类型的data。
+    // 在构造函数中为data分配空间，并将空间中开始部分用于header，header中保存了此页slots的bitmap信息。
     public HeapPage(HeapPageId id, byte[] data) throws IOException {
         this.pid = id;
         this.td = Database.getCatalog().getTupleDesc(id.getTableId());
@@ -69,7 +71,7 @@ public class HeapPage implements Page {
         @return the number of tuples on this page
     */
     private int getNumTuples() {        
-        // some code goes here
+        // getNumTuples()：返回此页中能够存储的tuple数量，用于构造函数中分配slot。
         //每页元组数 = floor((页大小*8)/(元组大小*8+1))
         return (int)Math.floor((BufferPool.getPageSize() * 8)/(td.getSize() * 8 + 1));
     }
@@ -78,9 +80,8 @@ public class HeapPage implements Page {
      * Computes the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      * @return the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      */
-    private int getHeaderSize() {        
-        
-        // some code goes here
+    private int getHeaderSize() {
+        // getHeaderSize()：返回此页需要多少bytes作为header。
         return (int)Math.ceil(this.numSlots * 1.0 / 8);
 
     }
@@ -88,6 +89,7 @@ public class HeapPage implements Page {
     /** Return a view of this page before it was modified
         -- used by recovery */
     public HeapPage getBeforeImage(){
+        // getBeforeImage()：在修改前返回此页的view，用于recovery。
         try {
             byte[] oldDataRef = null;
             synchronized(oldDataLock)
@@ -124,7 +126,7 @@ public class HeapPage implements Page {
      */
     private Tuple readNextTuple(DataInputStream dis, int slotId) throws NoSuchElementException {
         // if associated bit is not set, read forward to the next tuple, and
-        // return null.
+        // readNextTuple(DataInputStream dis, int slotId)：寻找到下一个被占用的slot，返回读取的tuple。
         if (!isSlotUsed(slotId)) {
             for (int i=0; i<td.getSize(); i++) {
                 try {
@@ -165,6 +167,7 @@ public class HeapPage implements Page {
      * @return A byte array correspond to the bytes of this page.
      */
     public byte[] getPageData() {
+        // getPageData()：返回byte[] 类型的此页数据。
         int len = BufferPool.getPageSize();
         ByteArrayOutputStream baos = new ByteArrayOutputStream(len);
         DataOutputStream dos = new DataOutputStream(baos);
@@ -247,7 +250,7 @@ public class HeapPage implements Page {
      * @param t The tuple to delete
      */
     public void deleteTuple(Tuple t) throws DbException {
-        // some code goes here
+        // deleteTuple(Tuple t)：从此页中删除特定的tuple数据，同时修改header中对应的bit，指示此slot处的数据已经被删除了。
         // necessary for lab2!
         int tupno = t.getRecordId().getTupleNumber();
         if(!isSlotUsed(tupno))
@@ -266,7 +269,7 @@ public class HeapPage implements Page {
      * @param t The tuple to add.
      */
     public void insertTuple(Tuple t) throws DbException {
-        // some code goes here
+        // insertTuple(Tuple t)：利用getFirstNotUsedSlot()函数找到第一个空闲的slot，加入数据，同时修改header中对应的bit，指示此slot处有数据。
         //  necessary for lab2
         if(!t.getTupleDesc().equals(td))
             throw new DbException("tupledesc is dismatch!");
@@ -287,7 +290,7 @@ public class HeapPage implements Page {
      * that did the dirtying
      */
     public void markDirty(boolean dirty, TransactionId tid) {
-        // some code goes here
+        // markDirty(boolean dirty, TransactionId tid)：标识此页的dirty/not dirty状态，同时利用tid说明是哪一个Transaction做了该标识。
 	//  necessary for lab2
         this.dirty = dirty;
         this.dirtyId = tid;
@@ -297,7 +300,7 @@ public class HeapPage implements Page {
      * Returns the tid of the transaction that last dirtied this page, or null if the page is not dirty
      */
     public TransactionId isDirty() {
-        // some code goes here
+        // TransactionId isDirty()：返回最后一个dirtied了此页的Transaction的tid，如果不dirty返回null。
 	//  necessary for lab2
         return this.dirty ? this.dirtyId : null;
     }
@@ -306,7 +309,7 @@ public class HeapPage implements Page {
      * Returns the number of empty slots on this page.
      */
     public int getNumEmptySlots() {
-        // some code goes here
+        // getNumEmptySlots()：返回此页中为空的slot数量
         int cnt = 0;
         for(int i = 0; i < numSlots; i ++){
             if(!isSlotUsed(i)){cnt ++;}
@@ -319,8 +322,12 @@ public class HeapPage implements Page {
      * Returns true if associated slot on this page is filled.
      */
     public boolean isSlotUsed(int i) {
-        // some code goes here
-        //use bitmap
+        // isSlotUsed(int i)：判断下标为i的slot是否被占用。
+        //bitmap中，low bits代表了先填入的slots状态。
+        // 因此，第一个headerByte的最小bit代表了第一个slot是否使用，
+        // 第二小的bit代表了第二个slot是否使用。
+        // 同样，最大headerByte的一些高位可能不与slot存在映射关系，
+        // use bitmap
         int q = i >> 3;
         int r = i & 7;
         int bitind = header[q];
@@ -331,7 +338,7 @@ public class HeapPage implements Page {
      * Abstraction to fill or clear a slot on this page.
      */
     private void markSlotUsed(int i, boolean value) {
-        // some code goes here
+        // markSlotUsed(int i, boolean value)：在header中标识下标为i的slot是否被占用，true在header的bit位上标1，false则标0。
         //necessary for lab2
         byte b = header[Math.floorDiv(i, 8)];
         byte mask = (byte)(1 << (i & 7));

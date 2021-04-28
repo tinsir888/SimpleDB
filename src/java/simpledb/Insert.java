@@ -33,7 +33,9 @@ public class Insert extends Operator {
     private boolean called;
     public Insert(TransactionId t, OpIterator child, int tableId)
             throws DbException {
-        // some code goes here
+        // class Insert的构造函数：把从child operator中读取到的tuples添加到tableId对应的表中。
+        // 有三个参数，第一个参数是代表transaction的tid，
+        // 第二个参数是OpIterator类型的迭代器child，第三个参数是tableId。
         if(!child.getTupleDesc().equals(Database.getCatalog().getTupleDesc(tableId))){
             throw new DbException("tableId not matched");
         }
@@ -85,7 +87,8 @@ public class Insert extends Operator {
      * @see BufferPool#insertTuple
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
-        // some code goes here
+        // fetchNext()：利用OpIterator类型的迭代器child找到一组要添加的记录
+        // insert需要经过BufferPool，所以使用Database.getBufferPool().insertTuple(this.tid, this.tableId, t)方法进行添加。
         if(this.called) return null;
         this.called = true;
         while(this.child.hasNext()){

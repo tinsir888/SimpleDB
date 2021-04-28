@@ -22,7 +22,9 @@ public class RecordId implements Serializable {
     private final PageId pid;
     private final int tupleno;
     public RecordId(PageId pid, int tupleno) {
-        // some code goes here
+        // RecordId的构造函数：RecordId是对一个特定Table中特定一个Page的一个特定tuple的引用，
+        // 构造时用到的参数是PageId类型的 pid 和 int类型的 tupleno，其中pid是该tuple所在的Page对应的Id，tupleno是该tuple是该Page中第几个。
+
         this.pid = pid;
         this.tupleno = tupleno;
     }
@@ -31,7 +33,7 @@ public class RecordId implements Serializable {
      * @return the tuple number this RecordId references.
      */
     public int getTupleNumber() {
-        // some code goes here
+        // getTupleNumber()：返回RecordId引用tuple的tupleno。
         return tupleno;
     }
 
@@ -39,7 +41,7 @@ public class RecordId implements Serializable {
      * @return the page id this RecordId references.
      */
     public PageId getPageId() {
-        // some code goes here
+        // getPageId()：返回RecordId引用tuple的pid
         return pid;
     }
 
@@ -51,8 +53,7 @@ public class RecordId implements Serializable {
      */
     @Override
     public boolean equals(Object o) {
-        // some code goes here
-        //throw new UnsupportedOperationException("implement this");
+        // equals(Object o)：判断两个RecordId对象是否相等。
         if(this.getClass().isInstance(o)) {
             RecordId rc = (RecordId) o;
             if (rc.getPageId().equals(pid) && rc.getTupleNumber() == tupleno) {

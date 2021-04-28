@@ -5,6 +5,15 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 /**
+ * SimpleDB中的元组是非常基本的。 它们包含以下内容的集合：
+ * “字段”对象，在“元组”中每个字段一个。
+ * “字段”是具有不同数据类型（例如，
+ * 整数，字符串）工具。 “ Tuple”对象是由
+ * 基础访问方法（例如，堆文件或B树），如
+ * 下一节。 元组也有一个类型（或模式），称为_tuple
+ * 描述符_，由“ TupleDesc”对象表示。 这
+ * 对象由“类型”对象的集合组成，每个字段一个
+ * 在元组中，每个元组描述相应字段的类型。
  * Tuple maintains information about the contents of a tuple. Tuples have a
  * specified schema specified by a TupleDesc object and contain Field objects
  * with the data for each field.
@@ -25,6 +34,7 @@ public class Tuple implements Serializable {
      */
     public Tuple(TupleDesc td) {
         // some code goes here
+        // Tuple构造函数：创建fields数组。
         tupleDesc = td;
         fields = new Field[td.numFields()];
     }
@@ -34,12 +44,14 @@ public class Tuple implements Serializable {
      */
     public TupleDesc getTupleDesc() {
         // some code goes here
+        // getTupleDesc()：返回当前tuple的TupleDesc结构。
         return tupleDesc;
     }
 
     /**
      * @return The RecordId representing the location of this tuple on disk. May
      *         be null.
+     *         getRecordId()、setRecordId()：获得/设置当前tuple的RecordId，RecordId代表了当前tuple在disk上的位置。
      */
     public RecordId getRecordId() {
         // some code goes here
@@ -67,6 +79,7 @@ public class Tuple implements Serializable {
      */
     public void setField(int i, Field f) {
         // some code goes here
+        // setField(int i, Field f)：为fields数组下标i处的field赋新值。
         fields[i] = f;
     }
 
@@ -78,6 +91,7 @@ public class Tuple implements Serializable {
      */
     public Field getField(int i) {
         // some code goes here
+        // getField(int i)：获得fields数组下标i处的field值。
         return fields[i];
     }
 
@@ -107,6 +121,7 @@ public class Tuple implements Serializable {
     public Iterator<Field> fields()
     {
         // some code goes here
+        // fields()：返回一个迭代器，迭代此tuple内fields数组的所有元素。
         return (Iterator<Field>) Arrays.asList(fields).iterator();
     }
 
