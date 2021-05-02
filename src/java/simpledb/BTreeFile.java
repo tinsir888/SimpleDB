@@ -265,7 +265,34 @@ public class BTreeFile implements DbFile {
 		// the new entry.  getParentWithEmtpySlots() will be useful here.  Don't forget to update
 		// the sibling pointers of all the affected leaf pages.  Return the page into which a 
 		// tuple with the given key field should be inserted.
-        return null;
+		BTreeLeafPage lbro = (BTreeLeafPage) getEmptyPage(tid, dirtypages, BTreePageId.LEAF);
+		Iterator<Tuple> it = page.iterator();
+		if(it == null) throw new DbException("This iterator is null in splitLeafPage function!");
+		//这里要先取出来，如果作为循环条件，则会因为删除的进行导致该变量变化
+		int mid = page.getNumTuples() / 2;
+		for(int i = 0; i < mid; i ++){
+			if(!it.hasNext())throw new DbException("miss next element in splitLefPage function!");
+			Tuple tmp = it.next();
+			page.deleteTuple(tmp);
+			lbro.insertTuple(tmp);
+		}
+		if(page.getLeftSiblingId() != null){
+			BTreeLeafPage prelsib = (BTreeLeafPage) getPage(tid, dirtypages, page.getLeftSiblingId(),
+					Permissions.READ_WRITE);
+			prelsib.setRightSiblingId(lbro.getId());
+		}
+		lbro.setLeftSiblingId(page.getLeftSiblingId());
+		lbro.setRightSiblingId(page.getId());
+		page.setLeftSiblingId(lbro.getId());
+		if(!it.hasNext()){throw new DbException("miss next element in splitLeafPage function!");}
+		Field copyFile = it.next().getField(keyField);
+		BTreeEntry copyEntry = new BTreeEntry(copyFile, lbro.getId(), page.getId());
+		BTreeInternalPage fa = getParentWithEmptySlots(tid, dirtypages, page.getParentId(),
+				copyFile);
+		fa.insertEntry(copyEntry);
+		updateParentPointers(tid, dirtypages, fa);
+		if(copyFile.compare(Op.GREATER_THAN_OR_EQ, field)) return lbro;
+        return page;
 		
 	}
 	
