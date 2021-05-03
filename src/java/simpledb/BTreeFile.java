@@ -292,7 +292,7 @@ public class BTreeFile implements DbFile {
 		fa.insertEntry(copyEntry);
 		updateParentPointers(tid, dirtypages, fa);
 		if(copyFile.compare(Op.GREATER_THAN_OR_EQ, field)) return lbro;
-        return page;
+        else return page;
 		
 	}
 	
@@ -330,7 +330,31 @@ public class BTreeFile implements DbFile {
 		// the parent pointers of all the children moving to the new page.  updateParentPointers()
 		// will be useful here.  Return the page into which an entry with the given key field
 		// should be inserted.
-		return null;
+		BTreeInternalPage lbro = (BTreeInternalPage) getEmptyPage(tid, dirtypages, BTreePageId.INTERNAL);
+		Iterator<BTreeEntry> it = page.iterator();
+		if(it == null) throw new DbException("This iterator is null in splitInternalPage function!");
+		int mid = page.getNumEntries() / 2;
+		for(int i = 0; i < mid; i ++){
+			if(!it.hasNext())throw new DbException("miss next element in splitInternalPage function!");
+			BTreeEntry tmp = it.next();
+			page.deleteKeyAndLeftChild(tmp);
+			lbro.insertEntry(tmp);
+		}
+		if(!it.hasNext())throw new DbException("miss next element in splitInternalPage function!");
+		BTreeEntry copyEntry = it.next();
+		Field copyField = copyEntry.getKey();
+		page.deleteKeyAndLeftChild(copyEntry);
+		copyEntry = new BTreeEntry(copyField, lbro.getId(), page.getId());
+		updateParentPointers(tid, dirtypages, page);
+		updateParentPointers(tid, dirtypages, lbro);
+
+		BTreeInternalPage fa = getParentWithEmptySlots(tid, dirtypages, page.getParentId(), copyField);
+		fa.insertEntry(copyEntry);
+		updateParentPointers(tid, dirtypages, fa);
+
+		if(copyField.compare(Op.GREATER_THAN_OR_EQ, field)) return lbro;
+		else return page;
+		//return null;
 	}
 	
 	/**
