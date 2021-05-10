@@ -242,7 +242,6 @@ public class BTreeFile implements DbFile {
 		}else{
 			// 对于internal节点
 			BTreeEntry entry;
-
 			BTreeInternalPage bTreeInternalPage = (BTreeInternalPage) getPage(tid, dirtypages, pid, perm);
 			Iterator<BTreeEntry> internalPageIterator = bTreeInternalPage.reverseIterator();
 			// 判断是否有entry
@@ -256,6 +255,7 @@ public class BTreeFile implements DbFile {
 				// f = null的时候，返回最左节点
 				nextId = entry.getRightChild();
 			}else{
+				/*
 				// 否则需要和entry进行比较，找到刚好 >=f 的 entry
 				while (f.compare(Op.GREATER_THAN, entry.getKey()) && internalPageIterator.hasNext()) {
 					entry = internalPageIterator.next();
@@ -265,6 +265,17 @@ public class BTreeFile implements DbFile {
 					nextId = entry.getRightChild();
 				} else {
 					nextId = entry.getLeftChild();
+				}*/
+				while(true){
+					if(entry.getKey().compare(Op.LESS_THAN_OR_EQ, f)){
+						nextId = entry.getRightChild();
+						return findLeafPage(tid, dirtypages, nextId, perm, f);
+					}
+					if(!internalPageIterator.hasNext()){
+						nextId = entry.getLeftChild();
+						break;
+					}
+					else entry = internalPageIterator.next();
 				}
 			}
 			return findLeafPage(tid, dirtypages, nextId, perm, f);
