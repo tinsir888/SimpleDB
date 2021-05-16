@@ -196,13 +196,20 @@ public class BufferPool {
         // getPage(TransactionId tid, PageId pid, Permissions perm)：根据pid获取Page，如果在pageStore中，返回对应Page;
         // 如果不在就添加进哈希表，如果缓存的page数量超过缓存最大numPages数量，调用evictPage()淘汰一个页。
         // 获得page时在tid代表的Transaction上加锁，perm代表锁的类型，保证使用返回Page时的安全性。
+        int lockType;
+        if (perm == Permissions.READ_ONLY){
+            lockType = 0;
+        } else lockType = 1;
+        boolean lockAcquired = false;
         if(!pageStore.containsKey(pid)){
-            if(pageStore.size() > numPages){
-                evictPage();
-            }
             DbFile dbfile = Database.getCatalog().getDatabaseFile(pid.getTableId());
             Page page = dbfile.readPage(pid);
+            if(pageStore.size() == numPages){
+                evictPage();
+            }
             pageStore.put(pid, page);
+            pageAge.put(pid, age++);
+            return page;
         }
         return pageStore.get(pid);
     }
@@ -219,6 +226,7 @@ public class BufferPool {
     public void releasePage(TransactionId tid, PageId pid) {
         // some code goes here
         // not necessary for lab1|lab2
+        lockManager.releaseLock(pid, tid);
     }
 
     /**
@@ -229,14 +237,31 @@ public class BufferPool {
     public void transactionComplete(TransactionId tid) throws IOException {
         // some code goes here
         // not necessary for lab1|lab2
+        transactionComplete(tid, true);
     }
 
     /** Return true if the specified transaction has a lock on the specified page */
     public boolean holdsLock(TransactionId tid, PageId p) {
         // some code goes here
         // not necessary for lab1|lab2
-        return false;
+        return lockManager.holdsLock(p, tid);
     }
+
+    /*
+     * add by tinsir888
+     * restorePages
+     */
+     private synchronized void restorePages(TransactionId tid){
+         for (PageId pid : pageStore.keySet()){
+             Page page = pageStore.get(pid);
+             if(page.isDirty() == tid){
+                 int tableId = pid.getTableId();
+                 DbFile file = Database.getCatalog().getDatabaseFile(tableId);
+                 Page pageFromDisk = file.readPage(pid);
+                 pageStore.put(pid, pageFromDisk);
+             }
+         }
+     }
 
     /**
      * Commit or abort a given transaction; release all locks associated to
@@ -249,6 +274,15 @@ public class BufferPool {
         throws IOException {
         // some code goes here
         // not necessary for lab1|lab2
+        if(commit){
+            flushPages(tid);
+        } else{
+            restorePages(tid);
+        }
+        for(PageId pid : pageStore.keySet()){
+            if(holdsLock(tid, pid))
+                releasePage(tid, pid);
+        }
     }
 
     /**
