@@ -1,5 +1,4 @@
 package simpledb;
-
 import javax.xml.crypto.Data;
 import java.io.*;
 import java.util.*;
@@ -18,7 +17,7 @@ public class HeapFile implements DbFile {
 
     /**
      * Constructs a heap file backed by the specified file.
-     * 
+     *
      * @param f
      *            the file that stores the on-disk backing store for this heap
      *            file.
@@ -36,7 +35,7 @@ public class HeapFile implements DbFile {
 
     /**
      * Returns the File backing this HeapFile on disk.
-     * 
+     *
      * @return the File backing this HeapFile on disk.
      */
     public File getFile() {
@@ -50,7 +49,7 @@ public class HeapFile implements DbFile {
      * HeapFile has a "unique id," and that you always return the same value for
      * a particular HeapFile. We suggest hashing the absolute file name of the
      * file underlying the heapfile, i.e. f.getAbsoluteFile().hashCode().
-     * 
+     *
      * @return an ID uniquely identifying this HeapFile.
      */
     public int getId() {
@@ -60,7 +59,7 @@ public class HeapFile implements DbFile {
 
     /**
      * Returns the TupleDesc of the table stored in this DbFile.
-     * 
+     *
      * @return TupleDesc of this DbFile.
      */
     public TupleDesc getTupleDesc() {
@@ -109,6 +108,7 @@ public class HeapFile implements DbFile {
     }
 
     // see DbFile.java for javadocs
+    /*
     public ArrayList<Page> insertTuple(TransactionId tid, Tuple t)
             throws DbException, IOException, TransactionAbortedException {
         // insertTuple(TransactionId tid, Tuple t)：找到一个未满的page，如果不存在空闲的slot，创建新的一页存储tuple，之后添加，返回添加过的Page。
@@ -130,13 +130,39 @@ public class HeapFile implements DbFile {
         return res;
         // necessary for lab2
     }
-
+     */
+    public ArrayList<Page> insertTuple(TransactionId tid, Tuple t)
+            throws DbException, IOException, TransactionAbortedException {
+        // insertTuple(TransactionId tid, Tuple t)：找到一个未满的page，如果不存在空闲的slot，创建新的一页存储tuple，之后添加，返回添加过的Page。
+        HeapPage cur = null;
+        for(int i = 0; i < numPages(); i ++){
+            //HeapPage cur = (HeapPage)Database.getBufferPool().getPage(tid, new HeapPageId(getId(), i), Permissions.READ_WRITE);
+            HeapPageId pid = new HeapPageId(getId(), i);
+            cur = (HeapPage)Database.getBufferPool().getPage(tid, pid, Permissions.READ_WRITE);
+            if(cur.getNumEmptySlots() != 0) break;
+            else Database.getBufferPool().releasePage(tid, pid);
+        }
+        //if not exist an empty slot, create a new page to store
+        if(cur == null || cur.getNumEmptySlots() == 0){
+            HeapPageId pid = new HeapPageId(getId(), numPages());
+            byte[] data = HeapPage.createEmptyPageData();
+            HeapPage hp = new HeapPage(pid, data);
+            writePage(hp);
+            cur = (HeapPage) Database.getBufferPool().getPage(tid, pid, Permissions.READ_WRITE);
+        }
+        cur.insertTuple(t);
+        ArrayList<Page> res = new ArrayList<>();
+        res.add(cur);
+        return res;
+        // necessary for lab2
+    }
     // see DbFile.java for javadocs
     public ArrayList<Page> deleteTuple(TransactionId tid, Tuple t) throws DbException, TransactionAbortedException {
         // deleteTuple(TransactionId tid, Tuple t)：找到对应的page，删除tuple，标识此page为dirty。
-        ArrayList<Page> res = new ArrayList<>();
         HeapPage cur = (HeapPage) Database.getBufferPool().getPage(tid, t.getRecordId().getPageId(), Permissions.READ_WRITE);
         cur.deleteTuple(t);
+
+        ArrayList<Page> res = new ArrayList<>();
         res.add(cur);
         return res;
         // necessary for lab2

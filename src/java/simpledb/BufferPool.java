@@ -76,8 +76,7 @@ public class BufferPool {
         public synchronized boolean acquireLock(PageId pid, TransactionId tid, int lockType){
             if(lockMap.get(pid) == null){//if no lock held on pid
                 Lock lock = new Lock(tid, lockType);
-                Vector<Lock> locks = new Vector<Lock>();
-                //Vector<lock>locks = new Vector<>();
+                Vector<Lock>locks = new Vector<>();
                 locks.add(lock);
                 lockMap.put(pid, locks);
                 return true;
@@ -86,15 +85,19 @@ public class BufferPool {
             //lock.size() won't be 0 because releaseLock will remove 0 size locks from lockMap
             Vector<Lock> locks = lockMap.get(pid);
             //if tid already holds lock on pid
-            for (Lock lock:locks) {
-                if (lock.tid == tid) {// already hold that lock
-                    if (lock.lockType == 1)// already hold exclusive lock when acquire shared lock
+            for(Lock lock:locks){
+                if(lock.tid == tid){
+                    // already hold that lock
+                    if(lock.lockType == lockType)
                         return true;
-                    if (locks.size() == 1) {// already hold shared lock,upgrade to exclusive lock
+                    // already hold exclusive lock when acquire shared lock
+                    if(lock.lockType == 1)
+                        return true;
+                    // already hold shared lock,upgrade to exclusive lock
+                    if(locks.size() == 1){
                         lock.lockType = 1;
                         return true;
-                    } else
-                        return false;
+                    }else return false;
                 }
             }
             //if the lock is a exclusive lock
@@ -208,7 +211,7 @@ public class BufferPool {
                 evictPage();
             }
             pageStore.put(pid, page);
-            pageAge.put(pid, age++);
+            pageAge.put(pid, age ++);
             return page;
         }
         return pageStore.get(pid);
@@ -401,12 +404,39 @@ public class BufferPool {
         // evictPage()：当缓存的page数量超过缓存最大numPages数量，调用evictPage()淘汰一个页。
         // 先维护一个<PageId,Integer>类型的哈希表pageAge，根据Page载入cache的时间排序，淘汰缓存中最老的Page
         // necessary for lab2
-        PageId pid = new ArrayList<>(pageStore.keySet()).get(0);
+        /*PageId pid = new ArrayList<>(pageStore.keySet()).get(0);
         try{
             flushPage(pid);
         } catch (IOException e){
             e.printStackTrace();
         }
-        discardPage(pid);
+        discardPage(pid);*/
+        assert numPages == pageStore.size() : "Bufferpool is not full, no need to evict.";
+        PageId pgid = null;
+        int oldestAge = -1;
+        // find the oldest page to evict (which is not dirty)
+        for(PageId pid : pageAge.keySet()){
+            Page page = pageStore.get(pid);
+            // skip dirty page
+            if(page.isDirty() != null){
+                continue;
+            }
+            if(pgid == null){
+                pgid = pid;
+                oldestAge = pageAge.get(pid);
+                continue;
+            }
+            if(pageAge.get(pid) < oldestAge){
+                pgid = pid;
+                oldestAge = pageAge.get(pid);
+            }
+        }
+        if(pgid == null)
+            throw new DbException("all pages are not dirty");
+        Page page = pageStore.get(pgid);
+
+        //evict
+        pageStore.remove(pgid);
+        pageAge.remove(pgid);
     }
 }
