@@ -204,7 +204,20 @@ public class BufferPool {
             lockType = 0;
         } else lockType = 1;
         boolean lockAcquired = false;
-        //---------------------------------------------------
+        //------------------------ex5lb4----------------------------
+        long start = System.currentTimeMillis();
+        long timeout = new Random().nextInt(2000) + 1000;
+        while(!lockAcquired){
+            long cur = System.currentTimeMillis();
+            if(cur - start > timeout)
+                // TransactionAbortedException means detect a deadlock
+                // after upper caller catch TransactionAbortedException
+                // will call transactionComplete to abort this transition
+                // give someone else a chance: abort the transaction
+                throw new TransactionAbortedException();
+            lockAcquired = lockManager.acquireLock(pid, tid, lockType);
+        }
+        //----------------------------------------------------------
         if(!pageStore.containsKey(pid)){
             DbFile dbfile = Database.getCatalog().getDatabaseFile(pid.getTableId());
             Page page = dbfile.readPage(pid);
